@@ -49,7 +49,9 @@ def main():
 	plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,names,colors=colors,save=True)
 
 
-
+#################################################################################
+#		Sampling from a common 1D distribution & comparing properties
+#################################################################################
 def control_samples(samples, sample_bins, controls, control_bins, Niter = 1000, DAG_frac = 0.2):
 	"""
 	Resample two samples to conform to the same common parameter distribution
@@ -167,7 +169,6 @@ def control_samples(samples, sample_bins, controls, control_bins, Niter = 1000, 
 
 	return samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter
 
-
 def plot_controlled_cumulative_histograms(sampled_hists, sample_bins, sampled_hists_DAGJKsigma, names = None, colors = ['Orange','Green'], ls = ['-','-'], axis = None, save=None):
 	"""
 	Plot mean cumulative histograms of each sample, controlled to their common parameter distribution 
@@ -210,7 +211,7 @@ def plot_controlled_cumulative_histograms(sampled_hists, sample_bins, sampled_hi
 		mean_sampled_hist = np.mean(sampled_hists[ss], axis=0)
 		median_DAGJK_sigma = np.median(sampled_hists_DAGJKsigma[ss], axis=0)
 		axis.errorbar(sample_bins[0:-1], mean_sampled_hist, yerr = median_DAGJK_sigma,
-						color=colors[ss], ls = ls[ss], linewidth=2., capsize=6)
+						color=colors[ss], ls = ls[ss], linewidth=3.5, capsize=6)
 
 		legend.extend([Line2D([0], [0], color = colors[ss], ls = ls[ss], linewidth = 3)])
 	axis.legend(legend,names,fontsize=16)
@@ -431,6 +432,130 @@ def histogram_indices(data,bins):
 
 	return hist, indices
 
+
+#################################################################################
+#		Sampling a population to conform to the 2D-distribution of another
+#################################################################################
+
+def sample_from_same_parameterspace(sample, control, xbins, ybins):
+	#sample = sample being conformed to target
+	#control = control population which sample is being conformed to
+	#xbins = x-axis bins
+	#ybins = y-axis bins
+
+	dist_sample = np.histogram2d(sample[0],sample[1],bins=[xbins,ybins],density=True)[0]
+	dist_control = np.histogram2d(control[0],control[1],bins=[xbins,ybins],density=True)[0]
+
+	hist_ratio = dist_control / dist_sample 
+
+	keep_indices = []
+	for ii in range(len(sample[0])):
+		xx = np.where(  np.abs(xbins[0:-1]+0.5*np.abs(np.diff(xbins)[0]) - sample[0][ii]) == np.min(np.abs(xbins[0:-1]+0.5*np.abs(np.diff(xbins)[0]) - sample[0][ii])) )[0][0]
+		yy = np.where(  np.abs(ybins[0:-1]+0.5*np.abs(np.diff(ybins)[0]) - sample[1][ii]) == np.min(np.abs(ybins[0:-1]+0.5*np.abs(np.diff(ybins)[0]) - sample[1][ii])) )[0][0]
+
+
+		if nprand.uniform() <= hist_ratio[xx,yy]:
+			keep_indices.extend([ii])
+
+	return keep_indices
+
+
+
+
+#################################################################################
+#		Matching a sample to a control sample & computing parameter offsets
+#################################################################################
+def match_populations(controls1, controls2, dex_lims, Nmatch = 5):
+	# sample 1 = test sample
+	# sample 2 = control sample
+	from functools import reduce
+
+	print('Number in sample population', len(controls1[0]))
+	print('Number in control population', len(controls2[0]))
+
+	successful = 0
+	matched = []
+	for ii in range(len(controls1[0])):
+		matches = []
+		Niter = 0
+		while(len(matches) < Nmatch and Niter <= 10):
+			Niter += 1
+			matches = []
+			for jj in range(len(controls1)):
+				step = (dex_lims[jj][1] - dex_lims[jj][0]) / 10
+				# print(step)
+				tol = dex_lims[jj][0] + (Niter-1) * step
+
+				if controls1[jj][ii] > dex_lims[jj][2]: 
+					match_low = dex_lims[jj][2]
+					match_high = 1.e10
+				else:
+					match_low = controls1[jj][ii] - tol
+					match_high = controls1[jj][ii] + tol
+
+				match = np.where((controls2[jj] > match_low) & (controls2[jj] < match_high))[0]
+
+				matches.append(match)
+		
+			matches = reduce(np.intersect1d,(matches))
+		if len(matches) < Nmatch:
+			matched.append([-1])
+		else:
+			matched.append(matches)
+			successful += 1
+
+			# print(matches)
+	print(successful, 'matched out of ',len(controls1[0]),': f = ', successful/len(controls1[0]))
+
+	return matched
+
+def calculate_property_offset(sample1, sample2, matched):
+
+
+	offsets_samp1 = []
+	offsets_samp2_grouped = []
+	matches_good = []
+	for ii in range(len(sample1)):
+		matches = matched[ii]
+		# print(matches)
+		if matches[0] != -1:
+			
+			matches_good.append(matches)
+			
+			delta_samp1 = sample1[ii] - np.median(sample2[matches])
+			delta_samp2 = sample2[matches] - np.median(sample2[matches])
+
+			offsets_samp1.extend([delta_samp1])
+			offsets_samp2_grouped.append(delta_samp2)
+
+	matches_unique = [value for sublist in matches_good for value in sublist]
+	matches_unique = np.unique(matches_unique)
+
+	offsets_samp2 = [value for sublist in offsets_samp2_grouped for value in sublist]
+
+	median_offsets = []
+	for ii in range(len(matches_unique)):
+		offsets = []
+		for jj in range(len(matches_good)):
+			# print(matches_good)
+			if any([index == matches_unique[ii] for index in matches_good[jj]]):
+				ref = np.where(matches_good[jj] == matches_unique[ii])[0]
+				offsets = offsets_samp2_grouped[jj][ref]
+		median_offsets.extend([np.median(offsets)])
+
+	median_offsets_samp2 = [matches_unique,median_offsets]
+
+	return offsets_samp1, offsets_samp2, median_offsets_samp2
+
+def bootstrap_median(sample):
+	Nsamp = 10000
+	medians = np.zeros(Nsamp)
+	for ii in range(Nsamp):
+		samp = np.random.choice(sample, len(sample), replace=True)
+		medians[ii] = np.median(samp)
+
+	BSuncert = np.std(medians)
+	return BSuncert
 
 
 if __name__ == '__main__':
