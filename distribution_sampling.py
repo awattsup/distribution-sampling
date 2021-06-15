@@ -465,47 +465,68 @@ def sample_from_same_parameterspace(sample, control, xbins, ybins):
 #################################################################################
 #		Matching a sample to a control sample & computing parameter offsets
 #################################################################################
-def match_populations(controls1, controls2, dex_lims, Nmatch = 5):
-	# sample 1 = test sample
-	# sample 2 = control sample
+def match_populations(sample, control, dex_lims, Nmatch = 5):
+	"""
+	Match a sample to a control sample based on having similar properties
+
+	Parameters
+	----------
+	sample : list length N
+		Properties of the sample being matched
+	control : list length N
+		Properties of the control sample being matched to
+	dex_lims : list shape N x [start, max, agnostic]
+		List of tolerances for properties. Matches will be found within 'start' dex,
+		and iteratively increased to 'max' dex if Nmatch aren't found. Matches are
+		made between properties with value above 'agnostic' regardless of value
+	Nmatch : int
+		Minimum number of matched required to keep the datapoint
+	
+
+	Returns
+	-------
+	matched : list length len(sample[0])
+		Indices of the rows in the control sample matched each object in sample being matched
+	"""
+
 	from functools import reduce
 
-	print('Number in sample population', len(controls1[0]))
-	print('Number in control population', len(controls2[0]))
+	print('Number in sample population', len(sample[0]))
+	print('Number in control population', len(control[0]))
 
 	successful = 0
 	matched = []
-	for ii in range(len(controls1[0])):
+	for ii in range(len(sample[0])):
 		matches = []
 		Niter = 0
 		while(len(matches) < Nmatch and Niter <= 10):
 			Niter += 1
-			matches = []
-			for jj in range(len(controls1)):
+			matches = []										#lists of indices in control population matched per-parameter 
+			for jj in range(len(sample)):						#iterate over the number of matching properties
 				step = (dex_lims[jj][1] - dex_lims[jj][0]) / 10
 				# print(step)
 				tol = dex_lims[jj][0] + (Niter-1) * step
 
-				if controls1[jj][ii] > dex_lims[jj][2]: 
+				if sample[jj][ii] > dex_lims[jj][2]: 			#check if property is above 'agnostic' threshold
 					match_low = dex_lims[jj][2]
 					match_high = 1.e10
 				else:
-					match_low = controls1[jj][ii] - tol
-					match_high = controls1[jj][ii] + tol
+					match_low = sample[jj][ii] - tol
+					match_high = sample[jj][ii] + tol
 
-				match = np.where((controls2[jj] > match_low) & (controls2[jj] < match_high))[0]
+				match = np.where((control[jj] > match_low) & (control[jj] < match_high))[0]
 
 				matches.append(match)
 		
-			matches = reduce(np.intersect1d,(matches))
+			matches = reduce(np.intersect1d,(matches))		#find only indices that match for all parameters
 		if len(matches) < Nmatch:
-			matched.append([-1])
+			matched.append([-1])							#insufficient matches found
 		else:
 			matched.append(matches)
 			successful += 1
 
 			# print(matches)
-	print(successful, 'matched out of ',len(controls1[0]),': f = ', successful/len(controls1[0]))
+	print(successful, 'matched out of ',len(sample[0]),': f = ', successful/len(sample[0]))
 
 	return matched
 
