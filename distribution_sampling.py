@@ -6,7 +6,9 @@ from scipy.stats import ks_2samp, anderson_ksamp
 from scipy.optimize import curve_fit
 from matplotlib.lines import Line2D
 import argparse
-import random as rnd
+
+
+rng = np.random.default_rng()
 
 def main():
 	fits_filename = '/home/awatts/Adam_PhD/models_fitting/asymmetries/data/xGASS_asymmetries_catalogue.ascii'
@@ -406,7 +408,7 @@ def plot_avg_KS_AD_test(samples_all_iter, save = None):
 
 def histogram_indices(data,bins):
 	"""
-	Compute histogram of data and return the indices in each bin
+	Compute histogram of data and return the indices contributing to each bin
 	Parameters
 	----------
 	data : array
@@ -417,9 +419,9 @@ def histogram_indices(data,bins):
 	Returns
 	-------
 	hist : array
-		number of data samples in each bin samples_all_DAGJKsigma : list
+		number of samples in each bin
 	indices : list, length bins - 1
-		indices of data points in the data array in each bin 
+		indices of data points in each bin 
 	"""
 	hist = np.zeros(len(bins) - 1)
 	indices = []
@@ -432,6 +434,170 @@ def histogram_indices(data,bins):
 
 	return hist, indices
 
+
+
+def sample_to_common_dist(controls, bins, Niter = 1):
+	"""
+	Resample N samples to conform to the same common distribution
+
+	Parameters
+	----------
+	controls : list, length Nsamp
+		List of values for each sample that will used for common resampling
+	bins : array
+		Bin edges for the control sample
+	Niter : int
+		Number of sampling iterations to perform
+
+
+	Returns
+	-------
+	indices_all : list, size [Nsamp][Niter]
+		List of the indicies selected for each sample in each Niter
+	indices_inbin_all : list, size [Nsamp][Niter][len(bins)]
+		Number of, and values of, the indicies selected in each contol bin for each sample in each Niter
+		NOTE - THESE ARE INDICES OF INDICES! (yeah, confusing, but needed I think)
+	control_hists : array, size Nsamp x len(bins)
+		Control histogram of each sample, and common histogram
+	"""
+
+	hist_control = np.zeros([len(controls), len(bins) - 1])				#Control sample histograms
+	for ss in range(len(controls)):
+		hist_control[ss,:] = np.histogram(controls[ss],
+						 bins = bins, density = True)[0] 
+	print('Created control histograms')
+	hist_common = np.min(hist_control, axis = 0)								#Common control histogram
+	# hist_common = hist_common /(np.sum(hist_common * np.diff(bins)))
+	print('Defined common histogram')
+	indices_all_samples = []														#List for all indices for all samples for all iter
+	for ss in range(len(controls)):										#Iterate over provided samples
+
+		control = controls[ss]
+
+		hist_ratio =  hist_common / hist_control[ss,:]  					#Fraction of sample to keep in each control histogram bin
+		indices_all = []
+		for nn in range(Niter):													#Loop over iterations
+
+			indices_iter = []													#List for all indices for sample
+			for ii in range(len(control)):
+				bincentre_diff = np.abs(bins[:-1] + 0.5*np.diff(bins) - control[ii])	#Find which control bin the data point lies in
+				control_bin = np.where(bincentre_diff == np.min(bincentre_diff))[0]
+				
+
+				test = rng.uniform()											#Generate random number for keeping
+				if test < hist_ratio[control_bin]:									#If rand < fraction to keep in the bin, keep the point														
+					indices_iter.extend([ii])														#Otherwise discard
+
+			control_hist_iter, indices_inbin_iter = histogram_indices(control[indices_iter], bins)				#Find data points in each bin of the control histogram
+
+			indices_all.append([indices_iter,control_hist_iter,indices_inbin_iter])								#Record indices kept, corresponding control hist,
+		print(f'Completed control of sample {ss+1}')																										#and indices in each bin of control hist  
+		indices_all_samples.append(indices_all)
+	control_hists = np.vstack([hist_control, hist_common])
+
+	return indices_all_samples, control_hists 
+
+def jackknife_sample_distributions(samples, bins, indices_all, DAG_frac = 0.2, cumulative = True):
+	"""
+	Jackknife distributions that have been controlled to a common distribution
+
+	Parameters
+	----------
+	samples : list of samples, length Nsamp
+		List of the sample values that are being compared
+	bins : array
+		Sample histogram bins
+	indices_all : list, size [Nsamp][Niter]
+		List of the indicies selected for each sample in each Niter
+	indices_inbin_all : list
+		Number of, and values of, the indicies selected in each contol bin for each sample in each Niter
+	DAG_frac : float, None
+		Fraction of the sample to delete in each DAGJK iteration, set to None for standard jackknife
+
+
+	Returns
+	-------
+	samples_all_hists : list
+		List of the cumulative histogram in each of Niter iterations in bins of sample_bins for each sample
+	samples_all_DAGJKsigma : list
+		List of the DAGJK uncertainty in each bin of the cumulative histograms for each Niter for each sample 
+	indexes_all_iter : list
+		List of the indicies selected for each sample in each Niter
+	"""
+
+	sample_hists_all = []
+	samples_all_DAGJKsigma = []
+	
+	Niter = len(indices_all[0])
+
+	for ss in range(len(samples)):												#Iterate over provided samples
+
+		sample = samples[ss]
+							
+		sample_hists = np.zeros([Niter, len(bins)-1])
+		sigma_DAGJK_hist = np.zeros([Niter, len(bins)-1])
+
+		for nn in range(Niter):													#Loop over iterations
+
+			indices_iter = indices_all[ss][nn][0]						#indicies of controlled sample in this iter
+			control_hist_iter = indices_all[ss][nn][1]					#Number of points in each bin of control hist
+			indices_inbin_iter = indices_all[ss][nn][2]					#Indices in each bin of control hist
+
+
+			sample_iter = np.array(sample[indices_iter])						#sample values for control iteration
+			sample_hist_iter = np.histogram(sample_iter, bins = bins, density = True)[0]				#Controlled sample cumulative histogram
+			if cumulative == True:
+				sample_hists[nn,:] = np.cumsum(sample_hist_iter) / np.nansum(sample_hist_iter)
+			else:
+				sample_hists[nn,:] = sample_hist_iter
+
+
+			if DAG_frac != None:
+				Rsamp = int(1. / DAG_frac)	
+				histbin_Nsamples = np.zeros([Rsamp, len(control_hist_iter)])			#array for number of samples to be drawn from each control bin
+
+				for ii in range(len(control_hist_iter)):							#Distritibute the number of samples in each control bin
+					Ngals_inbin = int(control_hist_iter[ii])						#to define the number of data points to select
+					jj = 0 															#in each DAGJK iteration
+					while(jj < Ngals_inbin):										
+						histbin_Nsamples[(jj + ii) % Rsamp, ii] += 1
+						jj += 1
+
+				DAG_indices = []									#Indices of values in all DAGJK iterations
+				for jj in range(Rsamp):
+					DAG_sample = []									#Indices of values in this DAGJK iteration
+					for ii in range(len(control_hist_iter)):																		#for each bin
+						if histbin_Nsamples[jj, ii] != 0:																			#if we are choosing a sample
+							indices_list = np.array(indices_inbin_iter[ii])															#Get the list of indices in this bin
+							
+							indices_sample = rng.choice(range(len(indices_list)), int(histbin_Nsamples[jj,ii]),replace=False)		#Randomly choose the (indices of the) defined number of samples in this bin
+							
+							DAG_sample.extend(indices_list[indices_sample])															#Add to indices list to be deleted in the given DAGJK iteration
+							
+							indices_list = np.delete(indices_list,indices_sample)										#Remove selected indices so they can't be selected again
+							
+							indices_inbin_iter[ii] = indices_list.tolist()												
+
+					DAG_indices.append(DAG_sample)																	
+
+				DAGJK_hists = np.zeros([Rsamp,len(bins) - 1])
+				for ii in range(len(DAG_indices)):
+					subset = np.delete(sample_iter, DAG_indices[ii])											#Delete the indices  
+					subset_hist = np.histogram(subset, bins = bins, density=True)[0]							#Calculate the parameter estimate (histogram, in this case)
+					if cumulative == True:
+						DAGJK_hists[ii,:] = np.cumsum(subset_hist) / np.nansum(subset_hist)
+					else:
+						DAGJK_hists[ii,:] = subset_hist
+
+				Rsamp_scale = ((Rsamp - 1.) / Rsamp)																	#DAGJK parameter uncertainty estimate
+				mean_DAGJK_hist = np.mean(DAGJK_hists, axis = 0)
+				sigma_DAGJK_hist[nn,:] = np.sqrt(Rsamp_scale * 
+									np.nansum((DAGJK_hists - mean_DAGJK_hist) ** 2., axis = 0) )
+
+		sample_hists_all.append(sample_hists)
+		samples_all_DAGJKsigma.append(sigma_DAGJK_hist)
+
+	return sample_hists_all, samples_all_DAGJKsigma
 
 #################################################################################
 #		Sampling a population to conform to the 2D-distribution of another
