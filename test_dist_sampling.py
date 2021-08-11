@@ -20,37 +20,43 @@ from functools import reduce
 
 
 
-def test_dist_creation():
+def create_test_dists():
 	
-	Nsamp = 100
+	Nsamps = [100,1000]
 
-	Afr_lowAsym_lowSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-	Afr_lowAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
-	Afr_lowAsym_lowSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'low')
-	Afr_lowAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_lowSN[:,0],Afr = Afr_lowAsym_lowSN[:,1])
-	np.savetxt(f'./samples/Afr_lowAsym_lowSN_N{Nsamp}.dat',Afr_lowAsym_lowSN)
+	for ii in range(len(Nsamps)):
+		Nsamp = Nsamps[ii]
+		Afr_lowAsym_lowSN = np.zeros([Nsamp,4])
+		Afr_lowAsym_highSN = np.zeros([Nsamp,4])
+		Afr_highAsym_lowSN = np.zeros([Nsamp,4])
+		Afr_highAsym_highSN = np.zeros([Nsamp,4])
+		
+		for jj in range(10):
+			lowAsym = sample_Afr_dist(Nsamp,asym_rate = 'low')
+			highAsym = sample_Afr_dist(Nsamp,asym_rate = 'high')
+
+			Afr_lowAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
+			Afr_lowAsym_lowSN[:,1] = lowAsym
+			Afr_lowAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_lowSN[:,0],Afr = Afr_lowAsym_lowSN[:,1])
+			np.savetxt(f'./samples/Afr_lowAsym_lowSN_N{Nsamp}_S{jj}.dat',Afr_lowAsym_lowSN)
 
 
-	Afr_lowAsym_highSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-	Afr_lowAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/8,7,100)
-	Afr_lowAsym_highSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'low')
-	Afr_lowAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_highSN[:,0],Afr = Afr_lowAsym_highSN[:,1])
-	np.savetxt(f'./samples/Afr_lowAsym_highSN_N{Nsamp}.dat',Afr_lowAsym_highSN)
-	
+			Afr_lowAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/8,7,100)
+			Afr_lowAsym_highSN[:,1] = lowAsym
+			Afr_lowAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_highSN[:,0],Afr = Afr_lowAsym_highSN[:,1])
+			np.savetxt(f'./samples/Afr_lowAsym_highSN_N{Nsamp}_S{jj}.dat',Afr_lowAsym_highSN)
 
-	Afr_highAsym_lowSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-	Afr_highAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
-	Afr_highAsym_lowSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'high')
-	Afr_highAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_lowSN[:,0],Afr = Afr_highAsym_lowSN[:,1])
-	np.savetxt(f'./samples/Afr_highAsym_lowSN_N{Nsamp}.dat',Afr_highAsym_lowSN)
-	
+			Afr_highAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
+			Afr_highAsym_lowSN[:,1] = highAsym
+			Afr_highAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_lowSN[:,0],Afr = Afr_highAsym_lowSN[:,1])
+			np.savetxt(f'./samples/Afr_highAsym_lowSN_N{Nsamp}_S{jj}.dat',Afr_highAsym_lowSN)
 
-	Afr_highAsym_highSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-	Afr_highAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/8,7,100)
-	Afr_highAsym_highSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'high')
-	Afr_highAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_highSN[:,0],Afr = Afr_highAsym_highSN[:,1])
-	np.savetxt(f'./samples/Afr_highAsym_highSN_N{Nsamp}.dat',Afr_highAsym_highSN)
-	
+
+			Afr_highAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/8,7,100)
+			Afr_highAsym_highSN[:,1] = highAsym
+			Afr_highAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_highSN[:,0],Afr = Afr_highAsym_highSN[:,1])
+			np.savetxt(f'./samples/Afr_highAsym_highSN_N{Nsamp}_S{jj}.dat',Afr_highAsym_highSN)
+
 
 	# SNdist_low = norm_exp_dist(SNrange,-1000,1/5,1,7,100)				#low S/N dist
 	# SNdist_high = norm_exp_dist(SNrange,-1000,1/8,1,7,100)				#high S/N dist
@@ -63,297 +69,524 @@ def test_dist_creation():
 	# plt.hist(Afr_lowAsym_lowSN[:,4],bins=bins=10**(np.arange(np.log10(7),np.log10(100),0.05)),density=True,histtype='step',cumulative='True')
 	# plt.show()
 
+def create_test_dists_v2():
+	
+	Nsamps = [100,1000]
+
+	for ii in range(len(Nsamps)):
+		Nsamp = Nsamps[ii]
+		Afr_lowAsym_lowSN = np.zeros([Nsamp,4])
+		Afr_lowAsym_highSN = np.zeros([Nsamp,4])
+		Afr_highAsym_lowSN = np.zeros([Nsamp,4])
+		Afr_highAsym_highSN = np.zeros([Nsamp,4])
+		
+		for jj in range(10):
+			lowAsym = sample_Afr_dist(Nsamp,asym_rate = 'low')
+			highAsym = sample_Afr_dist(Nsamp,asym_rate = 'high')
+
+			Afr_lowAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
+			Afr_lowAsym_lowSN[:,1] = lowAsym
+			Afr_lowAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_lowSN[:,0],Afr = Afr_lowAsym_lowSN[:,1])
+			np.savetxt(f'./samples/Afr_lowAsym_lowSN_N{Nsamp}_S{jj}.dat',Afr_lowAsym_lowSN)
+
+
+			Afr_lowAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/15,7,100)
+			Afr_lowAsym_highSN[:,1] = lowAsym
+			Afr_lowAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_lowAsym_highSN[:,0],Afr = Afr_lowAsym_highSN[:,1])
+			np.savetxt(f'./samples/Afr_lowAsym_highSN_N{Nsamp}_S{jj}.dat',Afr_lowAsym_highSN)
+
+			Afr_highAsym_lowSN[:,0] = sample_SN(Nsamp, -1000,1/5,7,100)
+			Afr_highAsym_lowSN[:,1] = highAsym
+			Afr_highAsym_lowSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_lowSN[:,0],Afr = Afr_highAsym_lowSN[:,1])
+			np.savetxt(f'./samples/Afr_highAsym_lowSN_N{Nsamp}_S{jj}.dat',Afr_highAsym_lowSN)
+
+
+			Afr_highAsym_highSN[:,0] = sample_SN(Nsamp, -1000,1/15,7,100)
+			Afr_highAsym_highSN[:,1] = highAsym
+			Afr_highAsym_highSN[:,2::] = MAP.get_SN_Afr(Afr_highAsym_highSN[:,0],Afr = Afr_highAsym_highSN[:,1])
+			np.savetxt(f'./samples/Afr_highAsym_highSN_N{Nsamp}_S{jj}.dat',Afr_highAsym_highSN)
+
+
+	# SNdist_low = norm_exp_dist(SNrange,-1000,1/5,1,7,100)				#low S/N dist
+	# SNdist_high = norm_exp_dist(SNrange,-1000,1/8,1,7,100)				#high S/N dist
+
+	# plt.hist(Afr_lowAsym_lowSN[:,1],bins=np.arange(1,2.2,0.05),density=True,histtype='step',cumulative='True')
+	# plt.hist(Afr_lowAsym_lowSN[:,3],bins=np.arange(1,2.2,0.05),density=True,histtype='step',cumulative='True')
+	# plt.show()
+
+	# plt.hist(Afr_lowAsym_lowSN[:,2],bins=bins=10**(np.arange(np.log10(7),np.log10(100),0.05)),density=True,histtype='step',cumulative='True')
+	# plt.hist(Afr_lowAsym_lowSN[:,4],bins=bins=10**(np.arange(np.log10(7),np.log10(100),0.05)),density=True,histtype='step',cumulative='True')
+	# plt.show()
+
+
 def SN_control_demo():
 
 	samp1_base = './samples/Afr_lowAsym_lowSN'
 	samp2_base = './samples/Afr_lowAsym_highSN'
 
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.99,top=0.99,hspace=0.1)
 
-	Afr_bins = np.arange(1,2.2,0.05)
-	dex_SN = 0.05
-	min_SN=7
-	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-	SN_bins = np.append(SN_bins,[np.log10(200)])
+	for jj in range(10):
 
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.99,top=0.99,hspace=0.1)
 
+		Afr_bins = np.arange(1,2.2,0.05)
+		dex_SN = 0.05
+		min_SN=7
+		SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
+		SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-	
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
-							SN_bins,
-							Niter=10) 
-	
-	ax1 = fig.add_subplot(gs[0,0]) 
-	ax2 = fig.add_subplot(gs[0,1],sharey=ax1,sharex=ax1) 
-
-
-	ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
-	ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
-	ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{jj}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{jj}.dat')
+		
+		
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
+								SN_bins,
+								Niter=10) 
+		
+		ax1 = fig.add_subplot(gs[0,0]) 
+		ax2 = fig.add_subplot(gs[0,1],sharey=ax1,sharex=ax1) 
 
 
-	control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
-	ax2.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
-
-	for ii in range(5):
-		hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
-		ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
-		hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
-		ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
-
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Probability density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Probability density',fontsize=20)
-	ax1.set_xscale('log')
-	ax1.set_xticks([7,10,20,40,70,100])
-	ax1.set_xticklabels([7,10,20,40,70,100])
-	ax1.set_xlim([6,120])
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N'],fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
 
 
+		control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
+		ax2.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
 
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-	
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
-							SN_bins,
-							Niter=10) 
-	
-	ax3 = fig.add_subplot(gs[1,0]) 
-	ax4 = fig.add_subplot(gs[1,1],sharey=ax1,sharex=ax1) 
+		for ii in range(5):
+			hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
+			hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
+
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Probability density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Probability density',fontsize=20)
+		ax1.set_xscale('log')
+		ax1.set_xticks([7,10,20,40,70,100])
+		ax1.set_xticklabels([7,10,20,40,70,100])
+		ax1.set_xlim([6,120])
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = ':', linewidth = 3)
+				]
+
+		ax1.legend(legend1,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N', 'low S/N parent','high S/N parent'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
 
 
-	ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
-	ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
-	ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{jj}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{jj}.dat')
+		
+		
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
+								SN_bins,
+								Niter=10) 
+		
+		ax3 = fig.add_subplot(gs[1,0]) 
+		ax4 = fig.add_subplot(gs[1,1],sharey=ax1,sharex=ax1) 
 
 
-	control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
-	ax4.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
 
-	for ii in range(5):
-		hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
-		ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
-		hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
-		ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
 
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('S/N',fontsize=20)
-	ax3.set_ylabel('Probability density',fontsize=20)
-	ax4.set_xlabel('S/N',fontsize=20)
-	ax4.set_ylabel('Probability density',fontsize=20)
-	ax3.set_xscale('log')
-	ax3.set_xticks([7,10,20,40,70,100])
-	ax3.set_xticklabels([7,10,20,40,70,100])
-	ax3.set_xlim([6,120])
-	
-	legend3 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3)]
+		control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
+		ax4.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
 
-	ax3.legend(legend3,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N'],fontsize=14)
+		for ii in range(5):
+			hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
+			hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
 
-	legend4 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
-			]
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('S/N',fontsize=20)
+		ax3.set_ylabel('Probability density',fontsize=20)
+		ax4.set_xlabel('S/N',fontsize=20)
+		ax4.set_ylabel('Probability density',fontsize=20)
+		ax3.set_xscale('log')
+		ax3.set_xticks([7,10,20,40,70,100])
+		ax3.set_xticklabels([7,10,20,40,70,100])
+		ax3.set_xlim([6,120])
+		
+		legend3 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = ':', linewidth = 3)
+				]
 
-	ax4.legend(legend4,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
+		ax3.legend(legend3,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N', 'low S/N parent','high S/N parent'],fontsize=14)
 
-	plt.show()
+		legend4 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend4,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
+
+		
+		parent_lowSNhist = np.histogram(np.log10(sample_SN(10000, -1000,1/5,7,100)),bins=SN_bins,density=True)[0]
+		parent_highSNhist = np.histogram(np.log10(sample_SN(10000, -1000,1/8,7,100)),bins=SN_bins,density=True)[0]
+
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_lowSNhist,ls='-',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_highSNhist,ls=':',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_lowSNhist,ls='-',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_highSNhist,ls=':',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+
+		fig.savefig(f'./figures/SN_control_demo_S{jj}.png')
+		# plt.show()
+		plt.close()
+	# plt.show()
+
+def SN_control_demo_v2():
+
+	samp1_base = './samples/Afr_lowAsym_lowSN'
+	samp2_base = './samples/Afr_lowAsym_highSN'
+
+
+	for jj in range(10):
+
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.99,top=0.99,hspace=0.1)
+
+		Afr_bins = np.arange(1,2.2,0.05)
+		dex_SN = 0.05
+		min_SN=7
+		SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
+		SN_bins = np.append(SN_bins,[np.log10(200)])
+
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{jj}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{jj}.dat')
+		
+		
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
+								SN_bins,
+								Niter=10) 
+		
+		ax1 = fig.add_subplot(gs[0,0]) 
+		ax2 = fig.add_subplot(gs[0,1],sharey=ax1,sharex=ax1) 
+
+
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
+
+
+		control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
+		ax2.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
+
+		for ii in range(5):
+			hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
+			hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax2.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
+
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Probability density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Probability density',fontsize=20)
+		ax1.set_xscale('log')
+		ax1.set_xticks([7,10,20,40,70,100])
+		ax1.set_xticklabels([7,10,20,40,70,100])
+		ax1.set_xlim([6,120])
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = ':', linewidth = 3)
+				]
+
+		ax1.legend(legend1,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N', 'low S/N parent','high S/N parent'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
+
+
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{jj}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{jj}.dat')
+		
+		
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,0]),np.log10(sample2[:,0])],
+								SN_bins,
+								Niter=10) 
+		
+		ax3 = fig.add_subplot(gs[1,0]) 
+		ax4 = fig.add_subplot(gs[1,1],sharey=ax1,sharex=ax1) 
+
+
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[0,:],ls='-',histtype='step',color='Blue',lw=3)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[1,:],ls='-',histtype='step',color='Red',lw=3)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hists[2,:],ls='--',histtype='step',color='Black',lw=4)
+
+
+		control_hist = control_hists[2,:] /(np.sum(control_hists[2,:] * np.diff(SN_bins))) #/ np.diff(SN_bins)
+		ax4.hist(10**SN_bins[:-1],10**SN_bins,weights = control_hist,ls='--',histtype='step',color='Black',lw=5)
+
+		for ii in range(5):
+			hist1 = np.histogram(np.log10(sample1[np.array(indices_all[0][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist1,histtype='step',color='Blue')
+			hist2 = np.histogram(np.log10(sample2[np.array(indices_all[1][ii][0]),0]),bins=SN_bins,density=True)[0]
+			ax4.hist(10**SN_bins[:-1],bins=10**SN_bins,weights=hist2,histtype='step',color='Red')
+
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('S/N',fontsize=20)
+		ax3.set_ylabel('Probability density',fontsize=20)
+		ax4.set_xlabel('S/N',fontsize=20)
+		ax4.set_ylabel('Probability density',fontsize=20)
+		ax3.set_xscale('log')
+		ax3.set_xticks([7,10,20,40,70,100])
+		ax3.set_xticklabels([7,10,20,40,70,100])
+		ax3.set_xlim([6,120])
+		
+		legend3 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Grey', ls = ':', linewidth = 3)
+				]
+
+		ax3.legend(legend3,[f'N = {Nsamp}','low S/N','high S/N', 'Common S/N', 'low S/N parent','high S/N parent'],fontsize=14)
+
+		legend4 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Blue', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Red', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend4,[f'N = {Nsamp}','Common S/N','sampled low S/N','sampled high S/N'],fontsize=14)
+
+		
+		parent_lowSNhist = np.histogram(np.log10(sample_SN(10000, -1000,1/5,7,100)),bins=SN_bins,density=True)[0]
+		parent_highSNhist = np.histogram(np.log10(sample_SN(10000, -1000,1/15,7,100)),bins=SN_bins,density=True)[0]
+
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_lowSNhist,ls='-',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax1.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_highSNhist,ls=':',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_lowSNhist,ls='-',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+		ax3.hist(10**SN_bins[:-1],10**SN_bins,weights = parent_highSNhist,ls=':',color='Grey',
+					histtype='step',zorder=-1,lw=5)
+
+		fig.savefig(f'./figures/SN_control_demo_S{jj}.png')
+		# plt.show()
+		plt.close()
+	# plt.show()
+
 
 def SNsampled_Afrhist_demo():
 	
 	samp1_base = './samples/Afr_lowAsym_lowSN'
 	samp2_base = './samples/Afr_lowAsym_highSN'
 
-	Niter = 1000
+	Niter = 10000
 
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
+	# for ii in range(10):
+	for ii in [4]:
 
-	Afr_bins = np.arange(1,2.2,0.05)
-	dex_SN = 0.05
-	min_SN=7
-	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-	SN_bins = np.append(SN_bins,[np.log10(200)])
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
+		Afr_bins = np.arange(1,2.2,0.05)
+		dex_SN = 0.05
+		min_SN=7
+		SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
+		SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax1 = fig.add_subplot(gs[0,0])
-	ax2 = fig.add_subplot(gs[0,1])
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
 
-
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax1 = fig.add_subplot(gs[0,0])
+		ax2 = fig.add_subplot(gs[0,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax1.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
-	ax1.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
 
-	ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax2.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
-	ax2.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
-
-	lowAsym_lowSN_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	lowAsym_lowSN_stddev_hist = np.std(sample_hists_all[0], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], lowAsym_lowSN_mean_hist, yerr = lowAsym_lowSN_stddev_hist,
-					color='Orange', linewidth=2, capsize=6)
-	
-	lowAsym_highSN_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	lowAsym_highSN_stddev_hist = np.std(sample_hists_all[1], axis=0)
-
-	ax2.errorbar(Afr_bins[0:-1], lowAsym_highSN_mean_hist, yerr = lowAsym_highSN_stddev_hist,
-					color='Green', linewidth=2, capsize=6)
+		ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax1.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
+		ax1.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
 
 
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Cumulative density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Cumulative density',fontsize=20)
-	ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
-	
+		ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax2.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
+		ax2.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
+
+		lowAsym_lowSN_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		lowAsym_lowSN_stddev_hist = np.std(sample_hists_all[0], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], lowAsym_lowSN_mean_hist, yerr = lowAsym_lowSN_stddev_hist,
+						color='Orange', linewidth=2, capsize=6)
+		
+		lowAsym_highSN_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		lowAsym_highSN_stddev_hist = np.std(sample_hists_all[1], axis=0)
+
+		ax2.errorbar(Afr_bins[0:-1], lowAsym_highSN_mean_hist, yerr = lowAsym_highSN_stddev_hist,
+						color='Green', linewidth=2, capsize=6)
 
 
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,[f'N = {Nsamp}','sampled high S/N','sampled low S/N'],fontsize=14)
-
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
-	ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Cumulative density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Cumulative density',fontsize=20)
+		ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
+		
 
 
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+
+		ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,[f'N = {Nsamp}','sampled high S/N','sampled low S/N'],fontsize=14)
+
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
+		ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax3.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
-	ax3.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax4.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
-	ax4.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	lowAsym_lowSN_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	lowAsym_lowSN_stddev_hist = np.std(sample_hists_all[0], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], lowAsym_lowSN_mean_hist, yerr = lowAsym_lowSN_stddev_hist,
-					color='Orange', linewidth=2, capsize=6)
-	
-	lowAsym_highSN_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	lowAsym_highSN_stddev_hist = np.std(sample_hists_all[1], axis=0)
-
-	ax4.errorbar(Afr_bins[0:-1], lowAsym_highSN_mean_hist, yerr = lowAsym_highSN_stddev_hist,
-					color='Green', linewidth=2, capsize=6)
+		ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax3.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
+		ax3.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
 
 
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax3.set_ylabel('Cumulative density',fontsize=20)
-	ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax4.set_ylabel('Cumulative density',fontsize=20)
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+		ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax4.plot(Afr_bins[0:-1],sample2_hist,color='Green',ls='--')
+		ax4.plot(Afr_bins[0:-1],sample1_hist,color='Orange',ls='--')
 
-	ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+		lowAsym_lowSN_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		lowAsym_lowSN_stddev_hist = np.std(sample_hists_all[0], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], lowAsym_lowSN_mean_hist, yerr = lowAsym_lowSN_stddev_hist,
+						color='Orange', linewidth=2, capsize=6)
+		
+		lowAsym_highSN_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		lowAsym_highSN_stddev_hist = np.std(sample_hists_all[1], axis=0)
 
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
+		ax4.errorbar(Afr_bins[0:-1], lowAsym_highSN_mean_hist, yerr = lowAsym_highSN_stddev_hist,
+						color='Green', linewidth=2, capsize=6)
 
-	ax4.legend(legend2,[f'N = {Nsamp}','sampled high S/N','sampled low S/N'],fontsize=14)
 
-	plt.show()
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax3.set_ylabel('Cumulative density',fontsize=20)
+		ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax4.set_ylabel('Cumulative density',fontsize=20)
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+
+		ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend2,[f'N = {Nsamp}','sampled high S/N','sampled low S/N'],fontsize=14)
+		fig.savefig(f'./figures/SNsampled_Afrhist_demo_S{ii}.png')
+		plt.close()
+	# plt.show()
 
 
 def DAGJK_sample_sigma_compare():
@@ -361,7 +594,10 @@ def DAGJK_sample_sigma_compare():
 	samp1_base = './samples/Afr_lowAsym_lowSN'
 	samp2_base = './samples/Afr_lowAsym_highSN'
 
-	Niter = 1000
+
+
+	Niter = 10000
+
 
 	Afr_bins = np.arange(1,2.2,0.05)
 	dex_SN = 0.05
@@ -369,69 +605,89 @@ def DAGJK_sample_sigma_compare():
 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
 	SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
+	Nsamps = [100,1000]
+	for jj in range(1):
+		Nsamp = Nsamps[jj]
+		# for ss in range(10):
+		for ss in [3]:
 
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
+			sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ss}.dat')
+			sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ss}.dat')
 
-
-	Nrow = 6
-	Ncol = 4
-	fig = plt.figure(figsize = (9,12))
-	gs = gridspec.GridSpec(Nrow,Ncol, hspace=0.25, wspace=0.01, top = 0.99, right = 0.99,
-		 bottom  = 0.06, left = 0.06)
-	
-
-	sample_hists = sample_hists_all[0]
-	sample_DAGJKsigmas = samples_all_DAGJKsigma[0]
+			indices_all, control_hists = ds.sample_to_common_dist(
+									[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+									SN_bins,
+									Niter=Niter) 
+			
+			sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+										[sample1[:,3],sample2[:,3]],
+										Afr_bins,indices_all)
 
 
-	for ii in range(len(Afr_bins) - 1):
+			Nrow = 6
+			Ncol = 4
+			fig = plt.figure(figsize = (9,12))
+			gs = gridspec.GridSpec(Nrow,Ncol, hspace=0.25, wspace=0.01, top = 0.99, right = 0.99,
+				 bottom  = 0.06, left = 0.08)
+			
 
-		bin_value_dist = sample_hists[:,ii]
-		bin_SNsample_sigma = np.std(bin_value_dist)
-
-		bin_DAGJK_sigmas = sample_DAGJKsigmas[:,ii]
-
-		bin_sigma_ratio = bin_DAGJK_sigmas / bin_SNsample_sigma
-		median_sigma_ratio = np.median(bin_sigma_ratio)
-
-
-		ax = fig.add_subplot(gs[int(ii/Ncol),(ii)%Ncol])
-
-		ax.hist(bin_sigma_ratio,bins=20,density=True,alpha=1)
-		ax.plot([median_sigma_ratio,median_sigma_ratio],[0,1.3],color='Black')
-		ax.text(0.45,0.85, f'[{Afr_bins[ii]:.2f},{Afr_bins[ii+1]:.2f})',
-			fontsize=12.,transform=ax.transAxes, zorder=1)
-		ax.text(0.45,0.7,f'$\sigma_{{JK}} / \sigma_{{N}}$ = {median_sigma_ratio:.2f}',
-			fontsize=12.,transform=ax.transAxes, zorder=1)
-
-		ax.tick_params(axis='both',which='both',direction='in',labelsize=0)
-		ax.tick_params(axis='x',which='both',direction='in',labelsize=14)
-		ax.set_ylim([0,1.3])
-		ax.set_yticks([0,0.5,1])
-		ax.set_xticks([xx for xx in range(0,int(1.2*ax.get_xlim()[1]),2)])
+			sample_hists = sample_hists_all[0]
+			sample_DAGJKsigmas = samples_all_DAGJKsigma[0]
 
 
+			for ii in range(len(Afr_bins) - 1):
 
-		if ii%Ncol == 0:
-			ax.set_ylabel('PDF',fontsize=18)
-			ax.tick_params(axis='y',which='both',direction='in',labelsize=14)
+				bin_value_dist = sample_hists[:,ii]
+				bin_SNsample_sigma = np.std(bin_value_dist)
+
+				bin_DAGJK_sigmas = sample_DAGJKsigmas[:,ii]
+
+				bin_sigma_ratio = bin_DAGJK_sigmas / bin_SNsample_sigma
+				median_sigma_ratio = np.median(bin_sigma_ratio[bin_sigma_ratio>0.1])
 
 
-		if int(ii/Ncol) == Nrow-1:
+				ax = fig.add_subplot(gs[int(ii/Ncol),(ii)%Ncol])
 
-			ax.set_xlabel('$\sigma_{{JK}} / \sigma_{{N}}$',fontsize=18)
+				ax.hist(bin_sigma_ratio[bin_sigma_ratio>0.1],bins=20,density=True,alpha=1)
+				ax.plot([median_sigma_ratio,median_sigma_ratio],[0,4],color='Black')
+				ax.text(0.45,0.85, f'[{Afr_bins[ii]:.2f},{Afr_bins[ii+1]:.2f})',
+					fontsize=12.,transform=ax.transAxes, zorder=1)
+				ax.text(0.45,0.7,f'$\sigma_{{JK}} / \sigma_{{N}}$ = {median_sigma_ratio:.2f}',
+					fontsize=12.,transform=ax.transAxes, zorder=1)
 
-	plt.show()
+				ax.tick_params(axis='both',which='both',direction='in',labelsize=0)
+				ax.tick_params(axis='x',which='both',direction='in',labelsize=14)
+				
+				if int(ii/Ncol) <2:
+					ax.set_ylim([0,1.3])
+					ax.set_yticks([0,0.5,1])
+				elif int(ii/Ncol) == 2:
+					ax.set_ylim([0,1.8])
+					ax.set_yticks([0,0.5,1])
+				elif int(ii/Ncol) == 3:
+					ax.set_ylim([0,3.2])
+					ax.set_yticks([0,1,2,3])
+				elif int(ii/Ncol) == 4:
+					ax.set_ylim([0,1.8])
+					ax.set_yticks([0,0.5,1])
+				elif int(ii/Ncol) ==5:
+					ax.set_ylim([0,1.8])
+					ax.set_yticks([0,0.5,1])
+				ax.set_xticks([1,3,5])
+
+
+
+				if ii%Ncol == 0:
+					ax.set_ylabel('PDF',fontsize=18)
+					ax.tick_params(axis='y',which='both',direction='in',labelsize=14)
+
+
+				if int(ii/Ncol) == Nrow-1:
+
+					ax.set_xlabel('$\sigma_{{JK}} / \sigma_{{N}}$',fontsize=18)
+			fig.savefig(f'./figures/DAGJK_sample_sigma_compare_N{Nsamp}_S{ss}.png')
+			# plt.show()
+			plt.close()
 
 
 
@@ -440,162 +696,166 @@ def test_recover_same_dist_1():
 	samp1_base = './samples/Afr_lowAsym_highSN'
 	samp2_base = './samples/Afr_lowAsym_lowSN'
 
-
-	Niter = 100
-
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
-
 	Afr_bins = np.arange(1,2.2,0.05)
 	dex_SN = 0.05
 	min_SN=7
 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
 	SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
 
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax1 = fig.add_subplot(gs[0,0])
-	ax2 = fig.add_subplot(gs[0,1])
+	Niter = 10000
+
+	# for ii in range(10):
+	for ii in [4]:
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
 
 
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax1 = fig.add_subplot(gs[0,0])
+		ax2 = fig.add_subplot(gs[0,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
 
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Cumulative density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Cumulative density',fontsize=20)
-	ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
-	
+		ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+
+		
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
 
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
-
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
-	ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Cumulative density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Cumulative density',fontsize=20)
+		ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
+		
 
 
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+
+		ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
+		ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax3.set_ylabel('Cumulative density',fontsize=20)
-	ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax4.set_ylabel('Cumulative density',fontsize=20)
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+		ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
-	ax4.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax3.set_ylabel('Cumulative density',fontsize=20)
+		ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax4.set_ylabel('Cumulative density',fontsize=20)
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	plt.show()
+		ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+
+		fig.savefig(f'./figures/recover_same_dist_1_S{ii}.png')
+		plt.close()
 
 def test_recover_same_dist_2():
 
@@ -603,10 +863,8 @@ def test_recover_same_dist_2():
 	samp1_base = './samples/Afr_highAsym_highSN'
 	samp2_base = './samples/Afr_highAsym_lowSN'
 
-	Niter = 100
+	Niter = 10000
 
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
 
 	Afr_bins = np.arange(1,2.2,0.05)
 	dex_SN = 0.05
@@ -614,150 +872,158 @@ def test_recover_same_dist_2():
 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
 	SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
+	for ii in range(10):
 
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax1 = fig.add_subplot(gs[0,0])
-	ax2 = fig.add_subplot(gs[0,1])
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
 
 
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax1 = fig.add_subplot(gs[0,0])
+		ax2 = fig.add_subplot(gs[0,1])
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax1.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
 
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Cumulative density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Cumulative density',fontsize=20)
-	ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
-	
+		ax2.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+
+		
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
 
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
-
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
-	ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Cumulative density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Cumulative density',fontsize=20)
+		ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
+		
 
 
-	noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+
+		ax1.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
+		ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
-	ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless_hist = np.cumsum(noiseless_hist) / np.sum(noiseless_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax3.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax3.set_ylabel('Cumulative density',fontsize=20)
-	ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax4.set_ylabel('Cumulative density',fontsize=20)
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+		ax4.plot(Afr_bins[0:-1],noiseless_hist,color='Black',ls='-')
+		ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
-	ax4.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax3.set_ylabel('Cumulative density',fontsize=20)
+		ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax4.set_ylabel('Cumulative density',fontsize=20)
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	plt.show()
+		ax3.legend(legend1,[f'N = {Nsamp}','Noiseless','high S/N', 'low S/N'],fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend2,[f'N = {Nsamp}','final high S/N','final low S/N'],fontsize=14)
+
+		fig.savefig(f'./figures/recover_same_dist_2_S{ii}.png')
+		plt.close()
+
 
 
 def test_recover_different_dist_1():
@@ -766,179 +1032,184 @@ def test_recover_different_dist_1():
 	samp1_base = './samples/Afr_lowAsym_highSN'
 	samp2_base = './samples/Afr_highAsym_lowSN'
 
-	Niter = 100
-
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
-
 	Afr_bins = np.arange(1,2.2,0.05)
 	dex_SN = 0.05
 	min_SN=7
 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
 	SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
 
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax1 = fig.add_subplot(gs[0,0])
-	ax2 = fig.add_subplot(gs[0,1])
+	Niter = 10000
+
+	for ii in range(10):
+
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
 
 
-	noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax1 = fig.add_subplot(gs[0,0])
+		ax2 = fig.add_subplot(gs[0,1])
 
 
-	noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
-	noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax1.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax1.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax2.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax2.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
+		noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax1.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax1.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
 
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Cumulative density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Cumulative density',fontsize=20)
-	ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
-	
+		ax2.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax2.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+
+		
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
 
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,
-				[f'N = {Nsamp}','low Asym','high Asym','low Asym; high S/N', 'high Asym; low S/N'],
-				fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,
-		[f'N = {Nsamp}','final low Asym; high S/N','final high Asym; low S/N'],
-		fontsize=14)
-
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
-	ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Cumulative density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Cumulative density',fontsize=20)
+		ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
+		
 
 
-	noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
+
+		ax1.legend(legend1,
+					[f'N = {Nsamp}','low Asym','high Asym','low Asym; high S/N', 'high Asym; low S/N'],
+					fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax2.legend(legend2,
+			[f'N = {Nsamp}','final low Asym; high S/N','final high Asym; low S/N'],
+			fontsize=14)
+
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
+		ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
 
 
-	noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
-	noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax3.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax3.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-	ax4.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax4.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+		noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
+		noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
 
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
+		ax3.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax3.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax3.set_ylabel('Cumulative density',fontsize=20)
-	ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax4.set_ylabel('Cumulative density',fontsize=20)
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	ax3.legend(legend1,
-				[f'N = {Nsamp}','low Asym','high Asym','low Asym; high S/N', 'high Asym; low S/N'],
-				fontsize=14)
+		ax4.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax4.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
-	ax4.legend(legend2,
-		[f'N = {Nsamp}','final low Asym; high S/N','final high Asym; low S/N'],
-		fontsize=14)
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax3.set_ylabel('Cumulative density',fontsize=20)
+		ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax4.set_ylabel('Cumulative density',fontsize=20)
+		
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-	plt.show()
+		ax3.legend(legend1,
+					[f'N = {Nsamp}','low Asym','high Asym','low Asym; high S/N', 'high Asym; low S/N'],
+					fontsize=14)
+
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
+
+		ax4.legend(legend2,
+			[f'N = {Nsamp}','final low Asym; high S/N','final high Asym; low S/N'],
+			fontsize=14)
+
+		fig.savefig(f'./figures/recover_diff_dist_1_S{ii}.png')
+		plt.close()
 
 def test_recover_different_dist_2():
 	
@@ -946,685 +1217,184 @@ def test_recover_different_dist_2():
 	samp1_base = './samples/Afr_lowAsym_lowSN'
 	samp2_base = './samples/Afr_highAsym_highSN'
 
-
-	Niter = 100
-
-	fig = plt.figure(figsize=(12,7))
-	gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
-
 	Afr_bins = np.arange(1,2.2,0.05)
 	dex_SN = 0.05
 	min_SN=7
 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
 	SN_bins = np.append(SN_bins,[np.log10(200)])
 
-	Nsamp = 1000
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax1 = fig.add_subplot(gs[0,0])
-	ax2 = fig.add_subplot(gs[0,1])
-
-
-	noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
-
-
-	noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
-	noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax1.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax1.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
-
-
-	ax2.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax2.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
-
-	
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
-
-
-	ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	# ax1.set_xlabel('S/N',fontsize=20)
-	ax1.set_ylabel('Cumulative density',fontsize=20)
-	# ax2.set_xlabel('S/N',fontsize=20)
-	ax2.set_ylabel('Cumulative density',fontsize=20)
-	ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
-	
-
-
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax1.legend(legend1,
-		[f'N = {Nsamp}','low Asym','high Asym','low Asym; low S/N', 'high Asym; high S/N'],
-		fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax2.legend(legend2,
-		[f'N = {Nsamp}','final low Asym; low S/N','high Asym; high S/N'],
-		fontsize=14)
-
-	Nsamp = 100
-	sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}.dat')
-	sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}.dat')
-	
-
-	indices_all, control_hists = ds.sample_to_common_dist(
-							[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
-							SN_bins,
-							Niter=Niter) 
-	
-	sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
-								[sample1[:,3],sample2[:,3]],
-								Afr_bins,indices_all)
-	
-	ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
-	ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
-
-
-	noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
-	noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
-	sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
-	sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
-
-
-	noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
-	noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
-	sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
-	sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
-	
-
-	ax3.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax3.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
-
-
-	ax4.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
-	ax4.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
-	ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
-	ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
-
-	sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
-	sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
-					color='Green', linewidth=2, capsize=6)
-	
-	sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
-	sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
-	ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
-					color='Orange', linewidth=2, capsize=6)
-
-	ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
-	ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax3.set_ylabel('Cumulative density',fontsize=20)
-	ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
-	ax4.set_ylabel('Cumulative density',fontsize=20)
-	
-	legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
-
-	ax3.legend(legend1,
-		[f'N = {Nsamp}','low Asym','high Asym','low Asym; low S/N', 'high Asym; high S/N'],
-		fontsize=14)
-
-	legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
-			# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
-			Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
-			]
-
-	ax4.legend(legend2,
-		[f'N = {Nsamp}','final low Asym; low S/N','high Asym; high S/N'],
-		fontsize=14)
-
-	plt.show()
-
-
-
-
-# def test_recover_same_dist_2():
-
-# 	Nsamp = 1000
-# 	Afr_lowAsym_lowSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	sample1[:,0] = sample_SN(Nsamp, 1,1/10,7,100)
-# 	sample1[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'high')
-# 	sample1[:,2:] = MAP.get_SN_Afr(sample1[:,0],Afr = sample1[:,1])
-	
-
-# 	Afr_lowAsym_highSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	sample2[:,0] = sample_SN(Nsamp, 1,1/25,7,100)
-# 	sample2[:,1] = sample_Afr_dist(Nsamp, asym_rate = 'high')
-# 	sample2[:,2:] = MAP.get_SN_Afr(sample2[:,0],Afr = sample2[:,1])
-
-	
-
-# 	Afr_bins = np.arange(1,2.2,0.05)
-# 	dex_SN = 0.05
-# 	min_SN=7
-# 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-# 	SN_bins = np.append(SN_bins,[np.log10(200)])
-
-
-# 	Afr_lowAsym_lowSN_hist,edges = np.histogram(Afr_lowAsym_lowSN[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_highSN_hist,edges = np.histogram(sample2[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_lowSN_hist = np.cumsum(Afr_lowAsym_lowSN_hist) / np.sum(Afr_lowAsym_lowSN_hist)
-# 	Afr_lowAsym_highSN_hist = np.cumsum(Afr_lowAsym_highSN_hist) / np.sum(Afr_lowAsym_highSN_hist)
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_lowSN_hist,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_highSN_hist,color='Orange')
-
-
-
-# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 						ds.control_samples(
-# 							[Afr_lowAsym_lowSN[:,3],Afr_lowAsym_highSN[:,3]],
-# 							Afr_bins,
-# 							[np.log10(Afr_lowAsym_lowSN[:,2]),np.log10(Afr_lowAsym_highSN[:,2])],
-# 							SN_bins,
-# 							Niter=1000)
-
-# 	#plot cumulative controlled hists
-
-# 	fig = plt.figure(figsize = (10,12))
-# 	gs = gridspec.GridSpec(2, 1, top = 0.99, right = 0.99, bottom  = 0.08, left = 0.12,hspace=0)
-
-# 	ax1 = fig.add_subplot(gs[0,0])
-# 	ax2 = fig.add_subplot(gs[1,0],sharex=ax1, sharey=ax1)
-
-# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
-	
-# 	ax1.set_ylim([0.1, 1])
-# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-
-
-
-# 	#plot sampling uncertaintiy vs DAGJK uncertainty
-# 	ds.plot_compare_DAGJK_Nsamp_sigmas(samples_all_DAGJKsigma, samples_all_hists, sample_bins, save=None)
-
-
-
-
-
-
-
-# 	# for ii in range(10):
+	Niter = 10000
+
+	for ii in range(10):
+
+		fig = plt.figure(figsize=(12,7))
+		gs = gridspec.GridSpec(2,2,left=0.08,bottom=0.09,right=0.98,top=0.99,hspace=0.1)
+
+
+		Nsamp = 1000
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
+		
+
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
+		
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax1 = fig.add_subplot(gs[0,0])
+		ax2 = fig.add_subplot(gs[0,1])
+
+
+		noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
+
+
+		noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
+		noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
+		
+
+		ax1.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax1.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax1.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax1.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+
+
+		ax2.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax2.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax2.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax2.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
+
+		
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
+		
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax2.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
+
+
+		ax1.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax2.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		# ax1.set_xlabel('S/N',fontsize=20)
+		ax1.set_ylabel('Cumulative density',fontsize=20)
+		# ax2.set_xlabel('S/N',fontsize=20)
+		ax2.set_ylabel('Cumulative density',fontsize=20)
+		ax1.set_xticks([1,1.2,1.4,1.6,1.8,2,2.2])
 		
 
 
-# 	# 	index1 = nprand.choice(len(data1),Nsamp)
-# 	# 	index2 = nprand.choice(len(data2),Nsamp)
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
+		ax1.legend(legend1,
+			[f'N = {Nsamp}','low Asym','high Asym','low Asym; low S/N', 'high Asym; high S/N'],
+			fontsize=14)
 
-# 	# 	hist1,edges = np.histogram(data1['Afr'][index1],bins=Afr_bins,density=True)
-# 	# 	hist2,edges = np.histogram(data2['Afr'][index2],bins=Afr_bins,density=True)
-# 	# 	hist1 = np.cumsum(hist1) / np.sum(hist1)
-# 	# 	hist2 = np.cumsum(hist2) / np.sum(hist2)
-# 	# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
 
+		ax2.legend(legend2,
+			[f'N = {Nsamp}','final low Asym; low S/N','high Asym; high S/N'],
+			fontsize=14)
 
-
-# 	# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 	# 						ds.control_samples([data2['Afr'][index2],data1['Afr'][index1]],Afr_bins,
-# 	# 								[np.log10(data2['SN'][index2]),np.log10(data1['SN'][index1])],SN_bins,
-# 	# 								Niter=10000)
-
-# 	# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 	# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
-		
-# 	# 	ax1.set_ylim([0.1, 1])
-# 	# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 	# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# 	fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-# 	# 	# plt.show()
-
-# def test_recover_different_dist_1():
-
-# 	Nsamp = 1000
-# 	Afr_lowAsym_highSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	Afr_lowAsym_highSN[:,0] = sample_SN(Nsamp, 1,1/25,7,100)
-# 	Afr_lowAsym_highSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'low')
-# 	Afr_lowAsym_highSN[:,2:] = MAP.get_SN_Afr(Afr_lowAsym_lowSN[:,0],Afr = Afr_lowAsym_lowSN[:,1])
-	
-
-# 	Afr_highAsym_lowSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	Afr_highAsym_lowSN[:,0] = sample_SN(Nsamp, 1,1/10,7,100)
-# 	Afr_highAsym_lowSN[:,1] = sample_Afr_dist(Nsamp, asym_rate = 'high')
-# 	Afr_highAsym_lowSN[:,2:] = MAP.get_SN_Afr(Afr_lowAsym_highSN[:,0],Afr = Afr_lowAsym_highSN[:,1])
-
-	
-
-# 	Afr_bins = np.arange(1,2.2,0.05)
-# 	dex_SN = 0.05
-# 	min_SN=7
-# 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-# 	SN_bins = np.append(SN_bins,[np.log10(200)])
-
-
-# 	Afr_lowAsym_lowSN_hist,edges = np.histogram(Afr_lowAsym_lowSN[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_highSN_hist,edges = np.histogram(Afr_lowAsym_highSN[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_lowSN_hist = np.cumsum(Afr_lowAsym_lowSN_hist) / np.sum(Afr_lowAsym_lowSN_hist)
-# 	Afr_lowAsym_highSN_hist = np.cumsum(Afr_lowAsym_highSN_hist) / np.sum(Afr_lowAsym_highSN_hist)
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_lowSN_hist,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_highSN_hist,color='Orange')
-
-
-
-# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 						ds.control_samples(
-# 							[Afr_lowAsym_lowSN[:,3],Afr_lowAsym_highSN[:,3]],
-# 							Afr_bins,
-# 							[np.log10(Afr_lowAsym_lowSN[:,2]),np.log10(Afr_lowAsym_highSN[:,2])],
-# 							SN_bins,
-# 							Niter=1000)
-
-# 	#plot cumulative controlled hists
-
-# 	fig = plt.figure(figsize = (10,12))
-# 	gs = gridspec.GridSpec(2, 1, top = 0.99, right = 0.99, bottom  = 0.08, left = 0.12,hspace=0)
-
-# 	ax1 = fig.add_subplot(gs[0,0])
-# 	ax2 = fig.add_subplot(gs[1,0],sharex=ax1, sharey=ax1)
-
-# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
-	
-# 	ax1.set_ylim([0.1, 1])
-# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-
-
-
-# 	#plot sampling uncertaintiy vs DAGJK uncertainty
-# 	ds.plot_compare_DAGJK_Nsamp_sigmas(samples_all_DAGJKsigma, samples_all_hists, sample_bins, save=None)
-
-
-
-
-
-
-
-# 	# for ii in range(10):
+		Nsamp = 100
+		sample1 = np.loadtxt(f'{samp1_base}_N{Nsamp}_S{ii}.dat')
+		sample2 = np.loadtxt(f'{samp2_base}_N{Nsamp}_S{ii}.dat')
 		
 
-
-# 	# 	index1 = nprand.choice(len(data1),Nsamp)
-# 	# 	index2 = nprand.choice(len(data2),Nsamp)
-
-
-# 	# 	hist1,edges = np.histogram(data1['Afr'][index1],bins=Afr_bins,density=True)
-# 	# 	hist2,edges = np.histogram(data2['Afr'][index2],bins=Afr_bins,density=True)
-# 	# 	hist1 = np.cumsum(hist1) / np.sum(hist1)
-# 	# 	hist2 = np.cumsum(hist2) / np.sum(hist2)
-# 	# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-
-
-# 	# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 	# 						ds.control_samples([data2['Afr'][index2],data1['Afr'][index1]],Afr_bins,
-# 	# 								[np.log10(data2['SN'][index2]),np.log10(data1['SN'][index1])],SN_bins,
-# 	# 								Niter=10000)
-
-# 	# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 	# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
+		indices_all, control_hists = ds.sample_to_common_dist(
+								[np.log10(sample1[:,2]),np.log10(sample2[:,2])],
+								SN_bins,
+								Niter=Niter) 
 		
-# 	# 	ax1.set_ylim([0.1, 1])
-# 	# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 	# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# 	fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-# 	# 	# plt.show()
-
-# def test_recover_different_dist_2():
-
-# 	Nsamp = 1000
-# 	Afr_lowAsym_lowSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	Afr_lowAsym_lowSN[:,0] = sample_SN(Nsamp, 1,1/10,7,100)
-# 	Afr_lowAsym_lowSN[:,1] = sample_Afr_dist(Nsamp,asym_rate = 'low')
-# 	Afr_lowAsym_lowSN[:,2:] = MAP.get_SN_Afr(Afr_lowAsym_lowSN[:,0],Afr = Afr_lowAsym_lowSN[:,1])
-	
-
-# 	Afr_highAsym_highSN = np.zeros([Nsamp,4])			#SN, Afr_noiseless, SN_noise, Afr_noise
-# 	Afr_highAsym_highSN[:,0] = sample_SN(Nsamp, 1,1/25,7,100)
-# 	Afr_highAsym_highSN[:,1] = sample_Afr_dist(Nsamp, asym_rate = 'high')
-# 	Afr_highAsym_highSN[:,2:] = MAP.get_SN_Afr(Afr_lowAsym_highSN[:,0],Afr = Afr_lowAsym_highSN[:,1])
-
-	
-
-# 	Afr_bins = np.arange(1,2.2,0.05)
-# 	dex_SN = 0.05
-# 	min_SN=7
-# 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-# 	SN_bins = np.append(SN_bins,[np.log10(200)])
+		sample_hists_all, samples_all_DAGJKsigma =  ds.jackknife_sample_distributions(
+									[sample1[:,3],sample2[:,3]],
+									Afr_bins,indices_all)
+		
+		ax3 = fig.add_subplot(gs[1,0],sharex=ax1,sharey=ax1)
+		ax4 = fig.add_subplot(gs[1,1],sharex=ax1,sharey=ax1)
 
 
-# 	Afr_lowAsym_lowSN_hist,edges = np.histogram(Afr_lowAsym_lowSN[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_highSN_hist,edges = np.histogram(Afr_lowAsym_highSN[:,3],bins=Afr_bins,density=True)
-# 	Afr_lowAsym_lowSN_hist = np.cumsum(Afr_lowAsym_lowSN_hist) / np.sum(Afr_lowAsym_lowSN_hist)
-# 	Afr_lowAsym_highSN_hist = np.cumsum(Afr_lowAsym_highSN_hist) / np.sum(Afr_lowAsym_highSN_hist)
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_lowSN_hist,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],Afr_lowAsym_highSN_hist,color='Orange')
+		noiseless1_hist = np.histogram(sample1[:,1],bins=Afr_bins,density=True)[0]
+		noiseless2_hist = np.histogram(sample2[:,1],bins=Afr_bins,density=True)[0]
+		sample1_hist = np.histogram(sample1[:,3],bins=Afr_bins,density=True)[0]
+		sample2_hist = np.histogram(sample2[:,3],bins=Afr_bins,density=True)[0]
 
 
-
-# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 						ds.control_samples(
-# 							[Afr_lowAsym_lowSN[:,3],Afr_lowAsym_highSN[:,3]],
-# 							Afr_bins,
-# 							[np.log10(Afr_lowAsym_lowSN[:,2]),np.log10(Afr_lowAsym_highSN[:,2])],
-# 							SN_bins,
-# 							Niter=1000)
-
-# 	#plot cumulative controlled hists
-
-# 	fig = plt.figure(figsize = (10,12))
-# 	gs = gridspec.GridSpec(2, 1, top = 0.99, right = 0.99, bottom  = 0.08, left = 0.12,hspace=0)
-
-# 	ax1 = fig.add_subplot(gs[0,0])
-# 	ax2 = fig.add_subplot(gs[1,0],sharex=ax1, sharey=ax1)
-
-# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
-	
-# 	ax1.set_ylim([0.1, 1])
-# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-
-
-
-# 	#plot sampling uncertaintiy vs DAGJK uncertainty
-# 	ds.plot_compare_DAGJK_Nsamp_sigmas(samples_all_DAGJKsigma, samples_all_hists, sample_bins, save=None)
-
-
-
-
-
-
-
-# 	# for ii in range(10):
+		noiseless1_hist = np.cumsum(noiseless1_hist) / np.sum(noiseless1_hist)
+		noiseless2_hist = np.cumsum(noiseless2_hist) / np.sum(noiseless2_hist)
+		sample1_hist = np.cumsum(sample1_hist) / np.sum(sample1_hist)
+		sample2_hist = np.cumsum(sample2_hist) / np.sum(sample2_hist)
 		
 
-
-# 	# 	index1 = nprand.choice(len(data1),Nsamp)
-# 	# 	index2 = nprand.choice(len(data2),Nsamp)
-
-
-# 	# 	hist1,edges = np.histogram(data1['Afr'][index1],bins=Afr_bins,density=True)
-# 	# 	hist2,edges = np.histogram(data2['Afr'][index2],bins=Afr_bins,density=True)
-# 	# 	hist1 = np.cumsum(hist1) / np.sum(hist1)
-# 	# 	hist2 = np.cumsum(hist2) / np.sum(hist2)
-# 	# 	ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 	# 	ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
+		ax3.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax3.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax3.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax3.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
 
+		ax4.plot(Afr_bins[0:-1],noiseless1_hist,color='Black',ls='-')
+		ax4.plot(Afr_bins[0:-1],noiseless2_hist,color='Black',ls=':')
+		ax4.plot(Afr_bins[0:-1],sample1_hist,color='Green',ls='--')
+		ax4.plot(Afr_bins[0:-1],sample2_hist,color='Orange',ls='--')
 
-# 	# 	samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 	# 						ds.control_samples([data2['Afr'][index2],data1['Afr'][index1]],Afr_bins,
-# 	# 								[np.log10(data2['SN'][index2]),np.log10(data1['SN'][index1])],SN_bins,
-# 	# 								Niter=10000)
-
-# 	# 	ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 	# 			 axis = ax2,names=['low SN','high SN'])
-
-
-# 	# 	ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 	# 	ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
+		sample1_mean_hist = np.mean(sample_hists_all[0], axis=0)
+		sample1_DAGJK_sigma = np.median(samples_all_DAGJKsigma[0], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample1_mean_hist, yerr = sample1_DAGJK_sigma,
+						color='Green', linewidth=2, capsize=6)
 		
-# 	# 	ax1.set_ylim([0.1, 1])
-# 	# 	ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
+		sample2_mean_hist = np.mean(sample_hists_all[1], axis=0)
+		sample2_DAGJK_sigma = np.median(samples_all_DAGJKsigma[1], axis=0)
+		ax4.errorbar(Afr_bins[0:-1], sample2_mean_hist, yerr = sample2_DAGJK_sigma,
+						color='Orange', linewidth=2, capsize=6)
 
-# 	# 	ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 	# 	ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 	# 	ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 	# 	fig.savefig('./figures/recover_same_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-# 	# 	# plt.show()
-
-
-# def test_recover_different_dist():
-
-
-# 	data1 = Table.read('/home/awatts/Adam_PhD/models_fitting/distribution-sampling/measurements/sym_sample_highSN_measuements.ascii',format='ascii')
-# 	data2 = Table.read('/home/awatts/Adam_PhD/models_fitting/distribution-sampling/measurements/asym_sample_lowSN_measuements.ascii',format='ascii')
-
-
-# 	Afr_bins = np.arange(1,2.2,0.05)
-# 	dex_SN = 0.05
-# 	min_SN=7
-# 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-# 	SN_bins = np.append(SN_bins,[np.log10(200)])
-
-# 	# plt.hist(nprand.choice(data1['Afr'],100),bins=Afr_bins,histtype='step',color='Green',density=True,cumulative=True)
-# 	# plt.hist(nprand.choice(data2['Afr'],100),bins=Afr_bins,histtype='step',color='Orange',density=True,cumulative=True)
-# 	# plt.show()
-
-# 	# plt.hist(data1['SN'],histtype='step')
-# 	# plt.hist(data2['SN'],histtype='step')
-# 	# plt.show()
-
-# 	Nsamp = 100
-
-# 	for ii in range(10):
-# 		fig = plt.figure(figsize = (10,12))
-
-# 		gs = gridspec.GridSpec(2, 1, top = 0.99, right = 0.99, bottom  = 0.08, left = 0.12,hspace=0)
-
-# 		ax1 = fig.add_subplot(gs[0,0])
-# 		ax2 = fig.add_subplot(gs[1,0],sharex=ax1, sharey=ax1)
-
-
-# 		index1 = nprand.choice(len(data1),Nsamp)
-# 		index2 = nprand.choice(len(data2),Nsamp)
-
-
-# 		hist1,edges = np.histogram(data1['Afr'][index1],bins=Afr_bins,density=True)
-# 		hist2,edges = np.histogram(data2['Afr'][index2],bins=Afr_bins,density=True)
-# 		hist1 = np.cumsum(hist1) / np.sum(hist1)
-# 		hist2 = np.cumsum(hist2) / np.sum(hist2)
-# 		ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 		ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-
-
-# 		samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 							ds.control_samples([data2['Afr'][index2],data1['Afr'][index1]],Afr_bins,
-# 									[np.log10(data2['SN'][index2]),np.log10(data1['SN'][index1])],SN_bins,
-# 									Niter=10000)
-
-# 		ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 				 axis = ax2,names=['asym, low SN','sym, high SN'])
-
-
-# 		ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 		ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 		ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
+		ax3.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax4.tick_params(axis='both',which='both',direction='in',labelsize=18)
+		ax3.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax3.set_ylabel('Cumulative density',fontsize=20)
+		ax4.set_xlabel('Asymmetry meausure A$_{fr}$',fontsize=20)
+		ax4.set_ylabel('Cumulative density',fontsize=20)
 		
-# 		ax1.set_ylim([0.1, 1])
-# 		ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
+		legend1 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Black', ls = ':', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '--', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '--', linewidth = 3)]
 
-# 		ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 		ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 		ax2.set_ylabel('Cumulative Histogram', fontsize=27)
+		ax3.legend(legend1,
+			[f'N = {Nsamp}','low Asym','high Asym','low Asym; low S/N', 'high Asym; high S/N'],
+			fontsize=14)
 
-# 		fig.savefig('./figures/recover_diff_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
+		legend2 = [Line2D([0], [0], color = 'White', ls = '-', linewidth = 3),
+				# Line2D([0], [0], color = 'Black', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Green', ls = '-', linewidth = 3),
+				Line2D([0], [0], color = 'Orange', ls = '-', linewidth = 3)
+				]
 
-# 		# plt.show()
+		ax4.legend(legend2,
+			[f'N = {Nsamp}','final low Asym; low S/N','high Asym; high S/N'],
+			fontsize=14)
 
-# def test_opposite_recover_different_dist():
+		fig.savefig(f'./figures/recover_diff_dist_2_S{ii}.png')
+		plt.close()
 
-
-# 	data2 = Table.read('/home/awatts/Adam_PhD/models_fitting/distribution-sampling/measurements/asym_sample_highSN_measuements.ascii',format='ascii')
-# 	data1 = Table.read('/home/awatts/Adam_PhD/models_fitting/distribution-sampling/measurements/sym_sample_lowSN_measuements.ascii',format='ascii')
-
-
-# 	Afr_bins = np.arange(1,2.2,0.05)
-# 	dex_SN = 0.05
-# 	min_SN=7
-# 	SN_bins = np.arange(np.log10(min_SN),np.log10(50) + dex_SN,dex_SN)
-# 	SN_bins = np.append(SN_bins,[np.log10(200)])
-
-# 	# plt.hist(nprand.choice(data1['Afr'],100),bins=Afr_bins,histtype='step',color='Green',density=True,cumulative=True)
-# 	# plt.hist(nprand.choice(data2['Afr'],100),bins=Afr_bins,histtype='step',color='Orange',density=True,cumulative=True)
-# 	# plt.show()
-
-# 	# plt.hist(data1['SN'],histtype='step',color='Green')
-# 	# plt.hist(data2['SN'],histtype='step',color='Orange')
-# 	# plt.show()
-
-# 	Nsamp = 100
-
-# 	for ii in range(10):
-# 		fig = plt.figure(figsize = (10,12))
-
-# 		gs = gridspec.GridSpec(2, 1, top = 0.99, right = 0.99, bottom  = 0.08, left = 0.12,hspace=0)
-
-# 		ax1 = fig.add_subplot(gs[0,0])
-# 		ax2 = fig.add_subplot(gs[1,0],sharex=ax1, sharey=ax1)
-
-
-# 		index1 = nprand.choice(len(data1),Nsamp)
-# 		index2 = nprand.choice(len(data2),Nsamp)
-
-
-# 		hist1,edges = np.histogram(data1['Afr'][index1],bins=Afr_bins,density=True)
-# 		hist2,edges = np.histogram(data2['Afr'][index2],bins=Afr_bins,density=True)
-# 		hist1 = np.cumsum(hist1) / np.sum(hist1)
-# 		hist2 = np.cumsum(hist2) / np.sum(hist2)
-# 		ax1.plot(Afr_bins[0:-1],hist1,color='Green')
-# 		ax1.plot(Afr_bins[0:-1],hist2,color='Orange')
-
-
-
-# 		samples_all_hists, samples_all_DAGJKsigma, indexes_all_iter = \
-# 							ds.control_samples([data2['Afr'][index2],data1['Afr'][index1]],Afr_bins,
-# 									[np.log10(data2['SN'][index2]),np.log10(data1['SN'][index1])],SN_bins,
-# 									Niter=10000)
-
-# 		ds.plot_controlled_cumulative_histograms(samples_all_hists,Afr_bins,samples_all_DAGJKsigma,
-# 				 axis = ax2,names=['asym, high SN','sym, low SN'])
-
-
-# 		ax1.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 		ax2.tick_params(axis = 'both', which = 'both', direction = 'in', labelsize = 25)
-# 		ax1.tick_params(axis = 'x', which = 'both', direction = 'in', labelsize = 0)
-		
-# 		ax1.set_ylim([0.1, 1])
-# 		ax1.set_title('{Nsamp} samples'.format(Nsamp=Nsamp))
-
-# 		ax2.set_xlabel('Asymmetry measure $A_{fr}$', fontsize=27)
-# 		ax1.set_ylabel('Cumulative Histogram', fontsize=27)
-# 		ax2.set_ylabel('Cumulative Histogram', fontsize=27)
-
-# 		fig.savefig('./figures/opposite_recover_diff_dist_samp{Nsamp}_{ii}.png'.format(Nsamp=Nsamp,ii=ii))
-
-# 		# plt.show()
 
 
 
@@ -1646,11 +1416,12 @@ def sample_SN_test():
 	
 	SNrange = np.arange(7,101,1)
 	SNdist_low = norm_exp_dist(SNrange,-1000,1/5,1,7,100)				#low S/N dist
-	SNdist_high = norm_exp_dist(SNrange,-1000,1/8,1,7,100)				#high S/N dist
+	# SNdist_high = norm_exp_dist(SNrange,-1000,1/8,1,7,100)				#high S/N dist
+	SNdist_high = norm_exp_dist(SNrange,-1000,1/15,1,7,100)				#high S/N dist
 
 
 	SN1 = sample_SN(100000,-1000,1/5,7,100)			#lower SN distribution
-	SN2 = sample_SN(100000,-1000,1/8,7,100)			#higher SN distribution
+	SN2 = sample_SN(100000,-1000,1/15,7,100)			#higher SN distribution
 
 	plt.plot(np.log10(SNrange),SNdist_low)
 	plt.plot(np.log10(SNrange),SNdist_high)
@@ -1999,14 +1770,18 @@ def norm_exp_dist(x,a,b,Ntot,lim1,lim2):
 if __name__ == '__main__':
 
 
-	# test_dist_creation()
+	# create_test_dists()
 	# SN_control_demo()
-	# SNsampled_Afrhist_demo()
+
+
+	# create_test_dists_v2()
+	# SN_control_demo_v2()
+	SNsampled_Afrhist_demo()
 	# DAGJK_sample_sigma_compare()
 	test_recover_same_dist_1()
-	test_recover_same_dist_2()
-	test_recover_different_dist_1()
-	test_recover_different_dist_2()
+	# test_recover_same_dist_2()
+	# test_recover_different_dist_1()
+	# test_recover_different_dist_2()
 
 	# sample_SN_test()
 
